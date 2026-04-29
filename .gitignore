@@ -1,0 +1,92 @@
+# ---------- Go ----------
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries and coverage output
+*.test
+*.out
+coverage.txt
+coverage.html
+coverage.xml
+profile.cov
+
+# Build artifacts
+/bin/
+/dist/
+/build/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Dependency directory (libraries don't vendor)
+vendor/
+
+# Air / live-reload
+tmp/
+
+# ---------- IDE / Editors ----------
+# JetBrains (GoLand, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+*.swn
+Session.vim
+.netrwhist
+tags
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+# ---------- OS ----------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.Trash-*
+.nfs*
+
+# ---------- Misc ----------
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Direnv
+.envrc
+.direnv/
