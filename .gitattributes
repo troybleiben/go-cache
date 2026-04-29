@@ -1,0 +1,29 @@
+# Default: normalize all text files to LF in the repo,
+# convert to native on checkout for unknown text files.
+* text=auto eol=lf
+
+# Go ecosystem files: always LF, no exceptions.
+*.go        text eol=lf
+go.mod      text eol=lf
+go.sum      text eol=lf
+
+# Config and docs: always LF.
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.toml      text eol=lf
+Makefile    text eol=lf
+.gitignore  text eol=lf
+
+# Shell scripts: always LF (CRLF would break them on Unix).
+*.sh        text eol=lf
+
+# Binary files: never touch.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.zip       binary
+*.tar.gz    binary
