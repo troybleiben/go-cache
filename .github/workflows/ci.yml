@@ -20,29 +20,32 @@ jobs:
         go: ["1.21", "1.22", "1.23"]
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
-
-      - name: Verify modules
-        run: go mod tidy -diff
-
+      
+      - name: Verify modules are tidy
+        if: matrix.go == '1.23'
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+      
       - name: Vet
         run: go vet ./...
-
+      
       - name: Test
         run: go test -race -count=1 -coverprofile=coverage.txt -covermode=atomic ./...
-
+      
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.go == '1.23'
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: coverage.txt
-
+  
   lint:
     name: lint
     runs-on: ubuntu-latest
