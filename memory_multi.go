@@ -199,7 +199,7 @@ func (mc *MemoryMultiCache[V]) Lookup(indexName string, key any) (V, Status, err
 		}
 		// Lazy cleanup of expired item — drop the whole entry across all indexes.
 		mc.mu.Lock()
-		if cur, ok := mc.items[id]; ok && cur.expiresAt == e.expiresAt {
+		if cur, ok := mc.items[id]; ok && cur.expiresAt.Equal(e.expiresAt) {
 			mc.evictByIDLocked(id)
 		}
 		mc.mu.Unlock()
@@ -210,7 +210,7 @@ func (mc *MemoryMultiCache[V]) Lookup(indexName string, key any) (V, Status, err
 			return zero, StatusNotFound, nil
 		}
 		mc.mu.Lock()
-		if cur, ok := mc.notFound[indexName][key]; ok && cur == exp {
+		if cur, ok := mc.notFound[indexName][key]; ok && cur.Equal(exp) {
 			delete(mc.notFound[indexName], key)
 		}
 		mc.mu.Unlock()

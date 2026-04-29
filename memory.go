@@ -144,7 +144,7 @@ func (c *Memory[K, V]) Lookup(key K) (V, Status) {
 		}
 		// Lazy cleanup of expired item.
 		c.mu.Lock()
-		if cur, ok := c.items[key]; ok && cur.expiresAt == e.expiresAt {
+		if cur, ok := c.items[key]; ok && cur.expiresAt.Equal(e.expiresAt) {
 			delete(c.items, key)
 		}
 		c.mu.Unlock()
@@ -156,7 +156,7 @@ func (c *Memory[K, V]) Lookup(key K) (V, Status) {
 		}
 		// Lazy cleanup of expired not-found.
 		c.mu.Lock()
-		if cur, ok := c.notFound[key]; ok && cur == exp {
+		if cur, ok := c.notFound[key]; ok && cur.Equal(exp) {
 			delete(c.notFound, key)
 		}
 		c.mu.Unlock()
