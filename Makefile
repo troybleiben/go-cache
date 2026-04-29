@@ -6,6 +6,26 @@ PKG         := ./...
 COVER_FILE  := coverage.txt
 COVER_HTML  := coverage.html
 
+# -------------------------------------------------
+# Macros
+# -------------------------------------------------
+
+# parse_version: sets MAJOR, MINOR, PATCH from the latest git tag.
+# Falls back to 0.0.0 if no tags exist.
+define parse_version
+	LATEST=$$(git describe --tags --abbrev=0 2>/dev/null || echo ""); \
+	V=$$(echo "$${LATEST:-v0.0.0}" | sed 's/^v//'); \
+	IFS='.' read -r MAJOR MINOR PATCH <<< "$$V"
+endef
+
+# new_version: tags and pushes $$NEW, rolls back the local tag on push failure.
+define new_version
+	echo "🚀 New version: $$NEW"; \
+	git tag "$$NEW" && git push origin "$$NEW" || (git tag -d "$$NEW"; exit 1); \
+	echo "✅ Tag $$NEW created and pushed"
+endef
+
+
 .PHONY: help
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} \
@@ -81,63 +101,26 @@ LATEST_TAG := $(shell git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-
 current-version: ## Show the latest semver tag
 	@echo $(LATEST_TAG)
 
+# -------------------------------------------------
+# Automatic version bumps
+# -------------------------------------------------
 .PHONY: tag-patch
-tag-patch: ## Tag and push next PATCH release (e.g. v0.1.0 -> v0.1.1)
-	@$(MAKE) --no-print-directory _tag BUMP=patch
+tag-patch:
+	@$(parse_version); \
+	NEW="v$$MAJOR.$$MINOR.$$((PATCH + 1))"; \
+	$(new_version)
 
 .PHONY: tag-minor
-tag-minor: ## Tag and push next MINOR release (e.g. v0.1.3 -> v0.2.0)
-	@$(MAKE) --no-print-directory _tag BUMP=minor
+tag-minor:
+	@$(parse_version); \
+	NEW="v$$MAJOR.$$((MINOR + 1)).0"; \
+	$(new_version)
 
 .PHONY: tag-major
-tag-major: ## Tag and push next MAJOR release (e.g. v0.4.2 -> v1.0.0)
-	@$(MAKE) --no-print-directory _tag BUMP=major
-
-.PHONY: tag
-tag: ## Tag and push an explicit version (usage: make tag VERSION=v0.2.0)
-	@if [ -z "$(VERSION)" ]; then echo "Usage: make tag VERSION=v0.2.0"; exit 1; fi
-	@$(MAKE) --no-print-directory _tag NEW_VERSION=$(VERSION)
-
-.PHONY: _tag
-_tag:
-	@set -e; \
-	current="$(LATEST_TAG)"; \
-	if [ -n "$(NEW_VERSION)" ]; then \
-		new="$(NEW_VERSION)"; \
-	else \
-		ver=$${currentv}; \
-		major=$$(echo $$ver | cut -d. -f1); \
-		minor=$$(echo $$ver | cut -d. -f2); \
-		patch=$$(echo $$ver | cut -d. -f3 | cut -d- -f1); \
-		case "$(BUMP)" in \
-			patch) patch=$$((patch + 1));; \
-			minor) minor=$$((minor + 1)); patch=0;; \
-			major) major=$$((major + 1)); minor=0; patch=0;; \
-			*) echo "Error: unknown BUMP=$(BUMP)"; exit 1;; \
-		esac; \
-		new="v$$major.$$minor.$$patch"; \
-	fi; \
-	if ! echo "$$new" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$$'; then \
-		echo "Error: $$new is not a valid semver tag"; exit 1; \
-	fi; \
-	if git rev-parse "$$new" >/dev/null 2>&1; then \
-		echo "Error: tag $$new already exists"; exit 1; \
-	fi; \
-	if [ -n "$$(git status --porcelain)" ]; then \
-		echo "Error: working tree is dirty; commit or stash first"; exit 1; \
-	fi; \
-	branch=$$(git rev-parse --abbrev-ref HEAD); \
-	if [ "$$branch" != "main" ] && [ "$$branch" != "master" ]; then \
-		echo "Warning: tagging from branch '$$branch' (not main/master)"; \
-	fi; \
-	echo "Current: $$current"; \
-	echo "New:     $$new"; \
-	if [ "$(DRY_RUN)" = "1" ]; then \
-		echo "(dry run — no tag created)"; exit 0; \
-	fi; \
-	git tag -a "$$new" -m "Release $$new"; \
-	git push origin "$$new"; \
-	echo "Pushed tag $$new. pkg.go.dev should pick it up shortly."
+tag-major:
+	@$(parse_version); \
+	NEW="v$$((MAJOR + 1)).0.0"; \
+	$(new_version)
 
 .PHONY: install-tools
 install-tools: ## Install development tools (golangci-lint)
